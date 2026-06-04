@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tiara's Adventure | Treasure Hunt</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=Be+Vietnam+Pro:wght@400;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --primary: #92436d;
+    --primary-container: #ff9ecd;
+    --primary-fixed: #ffd8e7;
+    --primary-fixed-dim: #ffafd4;
+    --on-primary: #ffffff;
+    --on-primary-fixed-variant: #762b55;
+    --secondary: #30628a;
+    --secondary-container: #a1d1fe;
+    --on-secondary-container: #265a81;
+    --tertiary: #6b5779;
+    --tertiary-container: #ccb3da;
+    --on-tertiary-container: #574465;
+    --surface: #f8f9fa;
+    --surface-container: #edeeef;
+    --surface-container-lowest: #ffffff;
+    --on-surface: #191c1d;
+    --on-surface-variant: #524349;
+    --outline: #847279;
+    --outline-variant: #d7c1c8;
+    --background: #f8f9fa;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--background);
+    color: var(--on-background);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .mi {
+    font-family: 'Material Symbols Outlined';
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    display: inline-block;
+    vertical-align: middle;
+    user-select: none;
+  }
+  .mi-fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* Header */
+  header {
+    position: fixed;
+    top: 0; left: 0; width: 100%;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: rgba(248,249,250,0.15);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 0 0 12px 12px;
+    border-bottom: 1.5px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(146,67,109,0.08);
+  }
+  .logo {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.02em;
+  }
+  nav { display: flex; gap: 32px; align-items: center; }
+  nav a {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 16px;
+    text-decoration: none;
+    color: var(--on-surface-variant);
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--primary); }
+  nav a.active { color: var(--primary); font-weight: 700; border-bottom: 2px solid var(--primary); }
+  .header-btn {
+    background: none; border: none; cursor: pointer;
+    padding: 8px; border-radius: 50%;
+    transition: all 0.3s; color: var(--primary);
+  }
+  .header-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+
+  /* Main */
+  main {
+    padding-top: 128px;
+    padding-bottom: 96px;
+    padding-left: 16px;
+    padding-right: 16px;
+    overflow: hidden;
+  }
+
+  /* Hero */
+  .hero {
+    max-width: 1000px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: clamp(40px, 7vw, 72px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--primary);
+    margin-bottom: 16px;
+  }
+  .hero p {
+    font-size: 18px;
+    line-height: 28px;
+    color: var(--on-surface-variant);
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* Map Canvas */
+  .map-canvas {
+    position: relative;
+    max-width: 1000px;
+    height: 800px;
+    margin: 0 auto 80px;
+    border-radius: 24px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1.5px solid rgba(255,255,255,0.4);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+    padding: 32px;
+  }
+
+  /* Map background gradient */
+  .map-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.15;
+    background:
+      radial-gradient(ellipse at 20% 80%, #7bc67e 0%, transparent 40%),
+      radial-gradient(ellipse at 60% 60%, #82b4e8 0%, transparent 35%),
+      radial-gradient(ellipse at 80% 20%, #d4a4e8 0%, transparent 40%),
+      radial-gradient(ellipse at 30% 30%, #f5c878 0%, transparent 30%);
+  }
+  .map-terrain {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  /* Decorative terrain shapes */
+  .terrain-hill {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(2px);
+  }
+
+  /* SVG path */
+  .path-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    filter: drop-shadow(0 4px 12px rgba(146,67,109,0.2));
+  }
+
+  /* Interaction points */
+  .map-points { position: absolute; inset: 0; z-index: 20; }
+
+  @keyframes float-pin {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .map-pin {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+  }
+  .pin-btn {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    transition: transform 0.3s;
+    animation: float-pin 3s ease-in-out infinite;
+  }
+  .pin-btn .mi { font-size: 28px; }
+  .pin-btn:hover { transform: scale(1.25) rotate(12deg); }
+  .pin-btn:active { transform: scale(0.95); }
+
+  .pin-label {
+    background: white;
+    color: var(--primary);
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    opacity: 0;
+    transition: all 0.3s;
+    margin-top: -48px;
+    pointer-events: none;
+  }
+  .map-pin:hover .pin-label { opacity: 1; margin-top: -56px; }
+
+  /* Chest */
+  .chest-container {
+    position: absolute;
+    right: 80px; top: 100px;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  .chest-container:hover { transform: scale(1.1); }
+  .chest-container:active { transform: scale(0.97); }
+
+  .chest-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 50px 10px rgba(255,158,205,0.6);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  .chest-card {
+    position: relative;
+    background: linear-gradient(135deg, var(--primary), var(--primary-container));
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(146,67,109,0.4);
+    border: 4px solid rgba(255,255,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .chest-card .mi { font-size: 60px; color: white; }
+
+  .chest-click-hint {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    color: var(--primary);
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 99px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    border: 2px solid var(--primary-container);
+    white-space: nowrap;
+    animation: bounce 1s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-6px); }
+  }
+
+  /* Clue modal */
+  .clue-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .clue-overlay.visible { opacity: 1; pointer-events: auto; }
+
+  .clue-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1.5px solid rgba(255,255,255,0.4);
+    padding: 32px;
+    border-radius: 24px;
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    transform: translateY(10px);
+    transition: transform 0.3s;
+  }
+  .clue-overlay.visible .clue-card { transform: translateY(0); }
+
+  .clue-icon-wrap {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: var(--surface-container);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .clue-icon-wrap .mi { font-size: 36px; }
+  .clue-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+  .clue-text {
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--on-surface-variant);
+    margin-bottom: 24px;
+  }
+  .clue-close {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 99px;
+    cursor: pointer;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    box-shadow: 0 8px 24px rgba(146,67,109,0.3);
+    transition: transform 0.2s;
+  }
+  .clue-close:hover { transform: scale(1.05); }
+
+  /* Final action */
+  .final-action {
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: all 0.5s;
+  }
+  .final-action.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .final-action h2 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 24px;
+  }
+  .final-action p {
+    font-size: 18px;
+    line-height: 28px;
+    color: var(--on-surface-variant);
+    margin-bottom: 32px;
+  }
+  .final-btn {
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    padding: 20px 48px;
+    border-radius: 99px;
+    cursor: pointer;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    box-shadow: 0 16px 40px rgba(146,67,109,0.4);
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .final-btn:hover { transform: scale(1.1); box-shadow: 0 20px 50px rgba(146,67,109,0.5); }
+  .final-btn:active { transform: scale(0.97); }
+
+  /* Footer */
+  footer {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    background: var(--surface-container-lowest);
+    border-top: 1px solid var(--outline-variant);
+  }
+  @media (min-width: 768px) { footer { flex-direction: row; justify-content: space-between; } }
+  footer .brand {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 24px; font-weight: 600; color: var(--secondary);
+  }
+  footer .note {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 13px; color: var(--on-surface-variant);
+  }
+  footer .links { display: flex; gap: 24px; }
+  footer .links a {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: var(--on-surface-variant);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  footer .links a:hover { color: var(--primary); }
+
+  @media (max-width: 768px) {
+    nav { display: none; }
+    .map-canvas { height: 600px; padding: 16px; }
+    .chest-container { right: 20px; top: 40px; }
+    .pin-btn { width: 48px; height: 48px; }
+    .pin-btn .mi { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Tiara's Adventure</div>
+  <nav>
+    <a href="1-boxes.html">Boxes</a>
+    <a href="2-secrets.html">Secrets</a>
+    <a href="4-map.html" class="active">Map</a>
+  </nav>
+  <button class="header-btn" aria-label="Celebrate">
+    <span class="mi mi-fill" style="font-size:24px; color:var(--primary);">celebration</span>
+  </button>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Perburuan Harta Ulang Tahun</h1>
+    <p>Ikuti jalan berbelok melalui alam ajaib imajinasimu untuk membuka kejutan yang menyenangkan!</p>
+  </section>
+
+  <section class="map-canvas" id="map-canvas">
+    <!-- Background -->
+    <div class="map-bg"></div>
+    <div class="map-terrain">
+      <div class="terrain-hill" style="width:300px;height:200px;background:rgba(123,198,126,0.2);bottom:10%;left:5%;"></div>
+      <div class="terrain-hill" style="width:200px;height:150px;background:rgba(130,180,232,0.2);top:20%;left:30%;"></div>
+      <div class="terrain-hill" style="width:250px;height:180px;background:rgba(212,164,232,0.2);top:10%;right:25%;"></div>
+      <div class="terrain-hill" style="width:180px;height:130px;background:rgba(245,200,120,0.2);bottom:25%;right:10%;"></div>
+    </div>
+
+    <!-- SVG Path -->
+    <svg class="path-svg" viewBox="0 0 1000 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M100 700 C 200 650, 150 500, 300 450 S 400 600, 600 500 S 700 300, 500 200 S 800 100, 900 150"
+        stroke="url(#pg)" stroke-width="12" stroke-dasharray="20 15" stroke-linecap="round"/>
+      <defs>
+        <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#92436d"/>
+          <stop offset="100%" stop-color="#30628a"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <!-- Map points -->
+    <div class="map-points">
+      <!-- Forest of Joy -->
+      <div class="map-pin" style="left:80px; top:660px;" onclick="showClue('forest')">
+        <div class="pin-label">Magical Forest</div>
+        <button class="pin-btn" style="background:var(--primary-container); color:var(--on-primary-container); animation-delay:0s;">
+          <span class="mi mi-fill">park</span>
+        </button>
+      </div>
+
+      <!-- River of Laughs -->
+      <div class="map-pin" style="left:280px; top:410px;" onclick="showClue('river')">
+        <div class="pin-label" style="color:var(--secondary);">river of happiness</div>
+        <button class="pin-btn" style="background:var(--secondary-container); color:var(--on-secondary-container); animation-delay:0.5s;">
+          <span class="mi mi-fill">waves</span>
+        </button>
+      </div>
+
+      <!-- Secret Cave -->
+      <div class="map-pin" style="left:580px; top:460px;" onclick="showClue('cave')">
+        <div class="pin-label" style="color:var(--tertiary);">Crystal Gems</div>
+        <button class="pin-btn" style="background:var(--tertiary-container); color:var(--on-tertiary-container); animation-delay:1s;">
+          <span class="mi mi-fill">diamond</span>
+        </button>
+      </div>
+
+      <!-- Cloud Peaks -->
+      <div class="map-pin" style="left:470px; top:160px;" onclick="showClue('peaks')">
+        <div class="pin-label">beautiful cloud tops</div>
+        <button class="pin-btn" style="background:var(--primary-fixed); color:var(--on-primary-fixed-variant); animation-delay:1.5s;">
+          <span class="mi mi-fill">cloud</span>
+        </button>
+      </div>
+
+      <!-- Treasure Chest -->
+      <div class="chest-container" id="chest-container" onclick="openChest()">
+        <div class="chest-glow"></div>
+        <div class="chest-card">
+          <span class="mi mi-fill" id="chest-icon">inventory_2</span>
+        </div>
+        <div class="chest-click-hint">Click to Open</div>
+      </div>
+    </div>
+
+    <!-- Clue modal -->
+    <div class="clue-overlay" id="clue-modal">
+      <div class="clue-card">
+        <div class="clue-icon-wrap">
+          <span class="mi" id="clue-icon" style="font-size:36px;">lightbulb</span>
+        </div>
+        <div class="clue-title" id="clue-title">Clue Found!</div>
+        <div class="clue-text" id="clue-text">Discovering the magic…</div>
+        <button class="clue-close" onclick="closeClue()">Continue Journey</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final Action -->
+  <div class="final-action" id="final-action">
+    <h2>Kamu telah sampai di akhir!</h2>
+    <p>Semua petunjuk telah mengarahkanmu ke sini. Apakah kamu siap untuk kejutan terakhir?</p>
+    <a href="5-finale.html" class="final-btn">The Grand Celebration</a>
+  </div>
+</main>
+
+<footer>
+  <div class="brand">Tiara's Adventure</div>
+  <div class="note">Made with joy for Tiara's Birthday 2026</div> 
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Support</a>
+  </div>
+</footer>
+
+<script>
+  const clues = {
+    forest: {
+      title: 'Magical Forest',
+      text: "Jauh di dalam hutan, kau menemukan stoples berisi kunang-kunang yang bercahaya! Mereka berbisik: 'Kamu lebih bersinar daripada kami di tengah malam ini.''",
+      icon: 'park',
+      color: 'var(--primary)'
+    },
+    river: {
+      title: 'River Of Happiness',
+      text: 'Air yang berkilauan memantulkan senyum cerahmu. Dan kamu berjalan menyusuri sungai di temani kunang-kunang yang berkilauan!',
+      icon: 'waves',
+      color: 'var(--secondary)'
+    },
+    cave: {
+      title: 'Crystal Gems',
+      text: 'Saat kamu berjalan menyusuri sungai kamu kamu melihat cahaya dengan warna favoritmu yang indah di sepanjang sungai!',
+      icon: 'diamond',
+      color: 'var(--tertiary)'
+    },
+    peaks: {
+      title: 'Beautiful Cloud Tops',
+      text: "Dari sini, seluruh dunia terlihat seperti kue ulang tahun! Kamu telah menemukan petunjuk tertinggi..",
+      icon: 'cloud',
+      color: 'var(--primary-container)'
+    }
+  };
+
+  function showClue(key) {
+    const d = clues[key];
+    document.getElementById('clue-title').textContent = d.title;
+    document.getElementById('clue-text').textContent = d.text;
+    const icon = document.getElementById('clue-icon');
+    icon.textContent = d.icon;
+    icon.style.color = d.color;
+    document.getElementById('clue-modal').classList.add('visible');
+  }
+
+  function closeClue() {
+    document.getElementById('clue-modal').classList.remove('visible');
+  }
+
+  function openChest() {
+    const icon = document.getElementById('chest-icon');
+    icon.textContent = 'redeem';
+    icon.animate([
+      { transform: 'scale(1)' },
+      { transform: 'scale(1.5)' },
+      { transform: 'scale(1.2)' }
+    ], { duration: 600, fill: 'forwards' });
+
+    for (let i = 0; i < 30; i++) createConfetti();
+
+    setTimeout(() => {
+      const fa = document.getElementById('final-action');
+      fa.classList.add('visible');
+      fa.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 600);
+  }
+
+  function createConfetti() {
+    const colors = ['#92436d','#30628a','#ff9ecd','#a1d1fe','#d7bde5'];
+    const c = document.createElement('div');
+    c.style.cssText = `
+      position:fixed; width:10px; height:10px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      left:${Math.random()*100}vw; top:-20px;
+      z-index:200; border-radius:${Math.random()>0.5?'50%':'2px'};
+      pointer-events:none;
+    `;
+    document.body.appendChild(c);
+    c.animate([
+      { transform: 'translateY(0) rotate(0)', opacity: 1 },
+      { transform: `translateY(100vh) rotate(${Math.random()*720}deg)`, opacity: 0 }
+    ], {
+      duration: Math.random() * 3000 + 2000,
+      easing: 'cubic-bezier(0,.9,.57,1)'
+    }).onfinish = () => c.remove();
+  }
+</script>
+</body>
+</html>
